@@ -11,6 +11,6 @@ database_id = "a73c422f-c55f-4e27-be60-99bd4d343f91"
 # Telegram ID двух людей через запятую, например "123456789,987654321"
 ALLOWED_USER_IDS = ""
 # Адрес мини-приложения на GitHub Pages, например "https://username.github.io"
-ALLOWED_ORIGIN = "*"
+ALLOWED_ORIGIN = "https://tryoya780.github.io"
 
 # Секрет BOT_TOKEN задаётся командой:  npx wrangler secret put BOT_TOKEN
