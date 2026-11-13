@@ -695,6 +695,10 @@
   if (tg) {
     tg.ready();
     tg.expand();
+    // На телефонах — полный экран, как у BotFather (Bot API 8.0+)
+    if (['ios', 'android'].includes(tg.platform) && tg.isVersionAtLeast?.('8.0')) {
+      try { tg.requestFullscreen(); } catch {}
+    }
     try { tg.disableVerticalSwipes?.(); } catch {}
     try {
       tg.setBackgroundColor?.('secondary_bg_color');
