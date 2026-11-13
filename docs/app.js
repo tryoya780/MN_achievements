@@ -695,9 +695,13 @@
   if (tg) {
     tg.ready();
     tg.expand();
-    // На телефонах — полный экран, как у BotFather (Bot API 8.0+)
-    if (['ios', 'android'].includes(tg.platform) && tg.isVersionAtLeast?.('8.0')) {
-      try { tg.requestFullscreen(); } catch {}
+    // Полный экран — только на телефонах; на компьютере всегда обычное окно (Bot API 8.0+)
+    if (tg.isVersionAtLeast?.('8.0')) {
+      const isMobile = ['ios', 'android', 'android_x'].includes(tg.platform);
+      try {
+        if (isMobile && !tg.isFullscreen) tg.requestFullscreen();
+        if (!isMobile && tg.isFullscreen) tg.exitFullscreen();
+      } catch {}
     }
     try { tg.disableVerticalSwipes?.(); } catch {}
     try {
