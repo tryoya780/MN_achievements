@@ -1,0 +1,14 @@
+{
+  "name": "love-achievements-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:init:local": "wrangler d1 execute love-achievements --local --file schema.sql",
+    "db:init:remote": "wrangler d1 execute love-achievements --remote --file schema.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
