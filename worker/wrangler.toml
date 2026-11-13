@@ -9,7 +9,7 @@ database_id = "a73c422f-c55f-4e27-be60-99bd4d343f91"
 
 [vars]
 # Telegram ID двух людей через запятую, например "123456789,987654321"
-ALLOWED_USER_IDS = ""
+ALLOWED_USER_IDS = "641501733"
 # Адрес мини-приложения на GitHub Pages, например "https://username.github.io"
 ALLOWED_ORIGIN = "https://tryoya780.github.io"
 
