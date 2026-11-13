@@ -14,7 +14,15 @@
     legendary: { name: 'Легендарная', xp: 100 },
   };
   const LEVEL_TITLES = ['Знакомство', 'Симпатия', 'Свидания', 'Влюблённые', 'Пара', 'Команда', 'Родные души', 'Легенда'];
-  const EMOJIS = ['❤️', '💋', '🌹', '💍', '🏠', '✈️', '🎉', '🎂', '🍝', '☕', '🎬', '🌊', '🏔️', '🐶', '🐱', '🎁', '🔥', '⭐', '🌙', '🎵', '📸', '🚗', '🥂', '🤝'];
+  // Иконки ачивок (Gravity UI), см. icons.js
+  const ACH_ICONS = ['heart-fill', 'heart', 'heart-pulse', 'card-heart', 'star-fill', 'sparkles-fill', 'gem', 'crown-diamond',
+    'gift', 'house-fill', 'plane-fill', 'car', 'suitcase', 'planet-earth', 'map-pin', 'camera', 'music-note', 'filmstrip',
+    'ticket', 'cup', 'mug', 'cherry', 'moon', 'sun', 'snowflake', 'umbrella', 'flame', 'rocket', 'key', 'graduation-cap',
+    'medal', 'persons', 'face-smile', 'comment-fill', 'envelope', 'calendar'];
+  const ICONS = window.ICONS || {};
+  const ic = (name) => ICONS[name] || '';
+  // старые ачивки могли сохраниться с эмодзи
+  const LEGACY_ICON = { '❤️': 'heart-fill', '⭐': 'star-fill', '🎁': 'gift', '🏠': 'house-fill', '✈️': 'plane-fill', '🔥': 'flame', '🌙': 'moon', '🎵': 'music-note', '📸': 'camera', '🚗': 'car' };
 
   const state = {
     user: null,
@@ -149,8 +157,11 @@
     let inner;
     if (photoOverride) inner = `<img class="loaded" src="${photoOverride}" alt="">`;
     else if (item.photo_id) inner = `<img data-photo="${esc(item.photo_id)}" alt="">`;
-    else inner = esc(item.icon || '❤️');
-    return `<div class="${cls}"><div class="medal-inner">${inner}</div>${locked ? '<span class="lock">🔒</span>' : ''}</div>`;
+    else {
+      const name = LEGACY_ICON[item.icon] || item.icon || 'heart-fill';
+      inner = ICONS[name] ? ic(name) : esc(name);
+    }
+    return `<div class="${cls}"><div class="medal-inner">${inner}</div>${locked ? `<span class="lock">${ic('lock-fill')}</span>` : ''}</div>`;
   }
 
   // ---------- навигация ----------
@@ -212,11 +223,14 @@
     const lv = levelInfo(xp);
     const s = state.settings;
 
-    let together = 'Укажите дату начала в настройках';
-    if (s.start_date) {
-      const d = daysBetween(parseIso(s.start_date), parseIso(todayIso()));
-      together = d >= 0 ? `Вместе ${d} ${plural(d, 'день', 'дня', 'дней')}` : 'Скоро начало истории';
-    }
+    const sinceText = (date, label) => {
+      const d = daysBetween(parseIso(date), parseIso(todayIso()));
+      return d >= 0 ? `${label} ${d} ${plural(d, 'день', 'дня', 'дней')}` : '';
+    };
+    const lines = [];
+    if (s.met_date) lines.push(sinceText(s.met_date, 'Знакомы'));
+    if (s.start_date) lines.push(sinceText(s.start_date, 'Вместе'));
+    const together = lines.filter(Boolean).join(' · ') || 'Укажите даты в настройках';
 
     const list = state.filter === 'unlocked' ? unlocked : state.filter === 'locked' ? locked : state.items;
     const tiles = list.map((i) => `
@@ -227,16 +241,16 @@
       </button>`).join('');
 
     const emptyText = {
-      unlocked: ['🏆', 'Пока ни одной ачивки.<br>Добавьте первое важное событие!'],
-      locked: ['🎯', 'Целей пока нет.<br>Добавьте мечту — она будет ждать разблокировки.'],
-      all: ['✨', 'Здесь будут все ваши ачивки и цели.'],
+      unlocked: ['medal', 'Пока ни одной ачивки.<br>Добавьте первое важное событие!'],
+      locked: ['target-dart', 'Целей пока нет.<br>Добавьте мечту — она будет ждать разблокировки.'],
+      all: ['sparkles-fill', 'Здесь будут все ваши ачивки и цели.'],
     }[state.filter];
 
     return `
       <div class="page">
         <div class="topbar">
           <h1>${esc(s.couple_name || 'Наши ачивки')}</h1>
-          <button class="icon-btn" data-action="settings" aria-label="Настройки">⚙️</button>
+          <button class="icon-btn" data-action="settings" aria-label="Настройки">${ic('gear')}</button>
         </div>
 
         <div class="hero">
@@ -267,16 +281,17 @@
           <button data-action="filter" data-filter="all" class="${state.filter === 'all' ? 'active' : ''}">Все</button>
         </div>
 
-        ${list.length ? `<div class="grid">${tiles}</div>` : `<div class="empty"><div class="big">${emptyText[0]}</div>${emptyText[1]}</div>`}
+        ${list.length ? `<div class="grid">${tiles}</div>` : `<div class="empty"><div class="big">${ic(emptyText[0])}</div>${emptyText[1]}</div>`}
       </div>
-      <button class="fab" data-action="new">＋ Новая ачивка</button>`;
+      <button class="fab" data-action="new">${ic('plus')}${state.filter === 'locked' ? 'Новая цель' : 'Новая ачивка'}</button>`;
   }
 
   function renderAnniversaryBanner(unlocked) {
     const today = parseIso(todayIso());
     let best = null;
     const candidates = unlocked.map((i) => ({ item: i, date: i.date }));
-    if (state.settings.start_date) candidates.push({ item: null, date: state.settings.start_date });
+    if (state.settings.start_date) candidates.push({ item: null, date: state.settings.start_date, what: 'начала отношений' });
+    if (state.settings.met_date) candidates.push({ item: null, date: state.settings.met_date, what: 'знакомства' });
     for (const c of candidates) {
       if (!c.date) continue;
       const d = parseIso(c.date);
@@ -288,10 +303,10 @@
       if (inDays <= 30 && (!best || inDays < best.inDays)) best = { ...c, inDays, years };
     }
     if (!best) return '';
-    const what = best.item ? `«${esc(best.item.title)}»` : 'начала отношений';
+    const what = best.item ? `«${esc(best.item.title)}»` : best.what;
     const when = best.inDays === 0 ? 'Сегодня' : `Через ${best.inDays} ${plural(best.inDays, 'день', 'дня', 'дней')}`;
     const attrs = best.item ? `data-action="open" data-id="${best.item.id}"` : 'data-action="settings"';
-    return `<button class="banner" ${attrs}><span class="emoji">🎂</span><span><b>${when}</b> — ${best.years} ${plural(best.years, 'год', 'года', 'лет')} с ${what}</span></button>`;
+    return `<button class="banner" ${attrs}><span class="banner-icon">${ic('calendar')}</span><span><b>${when}</b> — ${best.years} ${plural(best.years, 'год', 'года', 'лет')} с ${what}</span></button>`;
   }
 
   function renderDetail({ id }) {
@@ -311,9 +326,9 @@
           ${item.created_by_name ? `<span>Добавил(а): ${esc(item.created_by_name)}</span>` : ''}
         </div>
         <div class="actions">
-          ${locked ? `<button class="btn primary" data-action="unlock" data-id="${item.id}">🔓 Разблокировать</button>` : ''}
-          <button class="btn" data-action="edit" data-id="${item.id}">✏️ Редактировать</button>
-          <button class="btn danger" data-action="delete" data-id="${item.id}">Удалить</button>
+          ${locked ? `<button class="btn primary" data-action="unlock" data-id="${item.id}">${ic('lock-open-fill')}Разблокировать</button>` : ''}
+          <button class="btn" data-action="edit" data-id="${item.id}">${ic('pencil')}Редактировать</button>
+          <button class="btn danger" data-action="delete" data-id="${item.id}">${ic('trash-bin')}Удалить</button>
         </div>
       </div>`;
   }
@@ -322,7 +337,7 @@
     const d = state.draft;
     const isLocked = d.status === 'locked';
     const titleText = mode === 'create' ? (isLocked ? 'Новая цель' : 'Новая ачивка') : mode === 'unlock' ? 'Разблокировать' : 'Редактирование';
-    const preview = { ...d, photo_id: state.pendingPhoto ? null : d.photo_id };
+    const preview = { ...d, status: 'unlocked', photo_id: state.pendingPhoto ? null : d.photo_id };
     const hasPhoto = !!(state.pendingPhoto || d.photo_id);
 
     return `
@@ -331,22 +346,22 @@
 
         ${mode !== 'unlock' ? `
         <div class="segmented" style="margin-top:0">
-          <button data-action="set-status" data-value="unlocked" class="${!isLocked ? 'active' : ''}">🏆 Ачивка</button>
-          <button data-action="set-status" data-value="locked" class="${isLocked ? 'active' : ''}">🎯 Цель (закрыта)</button>
+          <button data-action="set-status" data-value="unlocked" class="${!isLocked ? 'active' : ''}">${ic('medal')}Ачивка</button>
+          <button data-action="set-status" data-value="locked" class="${isLocked ? 'active' : ''}">${ic('target-dart')}Цель</button>
         </div>` : ''}
 
         <div class="form-photo">
           <div data-action="pick-photo">${medal(preview, { big: true, photoOverride: state.pendingPhoto?.url })}</div>
           <div class="photo-links">
-            <button data-action="pick-photo">${hasPhoto ? 'Сменить фото' : '📷 Добавить фото'}</button>
+            <button data-action="pick-photo">${hasPhoto ? 'Сменить фото' : `${ic('camera')}Добавить фото`}</button>
             ${hasPhoto ? '<button class="danger" data-action="remove-photo">Убрать</button>' : ''}
           </div>
         </div>
 
         ${!hasPhoto ? `
         <div class="section-title">Иконка вместо фото</div>
-        <div class="section"><div class="emoji-row">
-          ${EMOJIS.map((e) => `<button data-action="set-icon" data-value="${e}" class="${d.icon === e ? 'active' : ''}">${e}</button>`).join('')}
+        <div class="section"><div class="icon-grid">
+          ${ACH_ICONS.map((n) => `<button data-action="set-icon" data-value="${n}" class="${(LEGACY_ICON[d.icon] || d.icon) === n ? 'active' : ''}" aria-label="${n}">${ic(n)}</button>`).join('')}
         </div></div>` : ''}
 
         <div class="section">
@@ -372,10 +387,10 @@
               <span class="dot"></span><span><b>${r.name}</b><small>+${r.xp} XP</small></span>
             </button>`).join('')}
         </div>
-        ${isLocked ? '<p class="hint-text">Цель видна как закрытая ачивка. Когда она сбудется — нажмите «Разблокировать».</p>' : ''}
+        ${isLocked ? '<p class="hint-text">Цель — то, что вы хотите сделать вместе. Когда сбудется, откройте её и нажмите «Разблокировать», чтобы получить XP.</p>' : ''}
       </div>
       <div class="bottom-bar">
-        <button class="btn primary" data-action="save" ${state.busy ? 'disabled' : ''}>${state.busy ? 'Сохраняю…' : mode === 'unlock' ? '🔓 Разблокировать' : 'Сохранить'}</button>
+        <button class="btn primary" data-action="save" ${state.busy ? 'disabled' : ''}>${state.busy ? 'Сохраняю…' : mode === 'unlock' ? 'Разблокировать' : 'Сохранить'}</button>
       </div>`;
   }
 
@@ -388,6 +403,10 @@
           <div class="field">
             <label>Название пары</label>
             <input data-setting="couple_name" maxlength="60" placeholder="Например: Мотя & Аня" value="${esc(s.couple_name || '')}">
+          </div>
+          <div class="field">
+            <label>Дата знакомства</label>
+            <input type="date" data-setting="met_date" value="${esc(s.met_date || '')}">
           </div>
           <div class="field">
             <label>Дата начала отношений</label>
@@ -409,7 +428,7 @@
     if (err.status === 403 && err.data?.user_id) {
       $app.innerHTML = `
         <div class="center-screen"><div>
-          <div style="font-size:52px">🔒</div>
+          <div class="big-icon">${ic('lock-fill')}</div>
           <h2>Это приватное приложение</h2>
           <p class="muted">Чтобы получить доступ, ваш ID нужно добавить в настройки сервера:</p>
           <div class="code">${esc(err.data.user_id)}</div>
@@ -418,7 +437,7 @@
     }
     $app.innerHTML = `
       <div class="center-screen"><div>
-        <div style="font-size:52px">😿</div>
+        <div class="big-icon">${ic('circle-exclamation')}</div>
         <h2>Не получилось загрузить</h2>
         <p class="muted">${esc(err.message)}</p>
         <button class="btn primary" data-action="reload" style="margin-top:12px">Повторить</button>
@@ -561,7 +580,7 @@
     } else {
       state.draft = {
         title: '', description: '', date: todayIso(), rarity: 'common',
-        status: state.filter === 'locked' ? 'locked' : 'unlocked', icon: '❤️', photo_id: null,
+        status: state.filter === 'locked' ? 'locked' : 'unlocked', icon: 'heart-fill', photo_id: null,
       };
     }
     go('editor', { mode, id: item?.id });

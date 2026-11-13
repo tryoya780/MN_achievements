@@ -230,3 +230,22 @@ input, textarea { font: inherit; color: var(--text); }
 #toast.show { transform: translate(-50%, 0); }
 .muted { color: var(--hint); }
 .code { font-family: ui-monospace, Menlo, monospace; background: var(--card); padding: 8px 12px; border-radius: 10px; display: inline-block; margin: 10px 0; user-select: all; font-size: 16px; }
+
+/* ---------- иконки Gravity UI ---------- */
+.gi { width: 1em; height: 1em; flex: none; display: inline-block; vertical-align: -0.15em; }
+.btn, .fab, .segmented button, .photo-links button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn { display: flex; }
+.fab .gi { width: 18px; height: 18px; }
+.icon-btn .gi { width: 20px; height: 20px; color: var(--hint); }
+.medal-inner .gi { width: 46%; height: 46%; color: var(--c1); }
+.medal.r-common .medal-inner .gi, .r-common .medal .medal-inner .gi { color: var(--accent); }
+.lock .gi { width: 14px; height: 14px; color: var(--hint); }
+.medal.big .lock .gi { width: 22px; height: 22px; }
+.empty .big .gi, .big-icon .gi { width: 48px; height: 48px; color: var(--hint); }
+.big-icon { margin-bottom: 8px; }
+.banner-icon { width: 36px; height: 36px; border-radius: 10px; flex: none; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+.banner-icon .gi { width: 20px; height: 20px; }
+.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; padding: 10px 0; }
+.icon-grid button { aspect-ratio: 1; border-radius: 12px; background: var(--bg2); display: grid; place-items: center; color: var(--text); }
+.icon-grid button .gi { width: 22px; height: 22px; }
+.icon-grid button.active { outline: 2px solid var(--accent); color: var(--accent); }

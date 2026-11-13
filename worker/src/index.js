@@ -41,11 +41,11 @@ async function route(request, env) {
 
   if (path === '/api/settings' && method === 'PUT') {
     const body = await readJson(request);
-    const allowed = { couple_name: 60, start_date: 10, partner_names: 120 };
+    const allowed = { couple_name: 60, start_date: 10, met_date: 10, partner_names: 120 };
     for (const [key, maxLen] of Object.entries(allowed)) {
       if (!(key in body)) continue;
       let value = String(body[key] ?? '').trim().slice(0, maxLen);
-      if (key === 'start_date' && value && !isIsoDate(value)) throw new HttpError(400, 'Неверная дата');
+      if ((key === 'start_date' || key === 'met_date') && value && !isIsoDate(value)) throw new HttpError(400, 'Неверная дата');
       await env.DB.prepare(
         'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'
       ).bind(key, value).run();
@@ -71,7 +71,7 @@ async function route(request, env) {
       date: data.date ?? null,
       rarity: data.rarity ?? 'common',
       status: data.status ?? 'unlocked',
-      icon: data.icon ?? '❤️',
+      icon: data.icon ?? 'heart-fill',
       photo_id: data.photo_id ?? null,
       created_by: user.id,
       created_by_name: user.first_name ?? '',
@@ -229,7 +229,7 @@ function validateAchievement(body, partial) {
     if (!STATUSES.includes(body.status)) throw new HttpError(400, 'Неверный статус');
     out.status = body.status;
   }
-  if ('icon' in body) out.icon = String(body.icon || '❤️').slice(0, 16);
+  if ('icon' in body) out.icon = String(body.icon || 'heart-fill').slice(0, 32);
   if ('photo_id' in body) {
     const p = body.photo_id ? String(body.photo_id) : null;
     if (p && !/^[\w-]+$/.test(p)) throw new HttpError(400, 'Неверное фото');
